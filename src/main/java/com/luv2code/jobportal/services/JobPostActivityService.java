@@ -2,7 +2,9 @@ package com.luv2code.jobportal.services;
 
 import com.luv2code.jobportal.entity.*;
 import com.luv2code.jobportal.repository.JobPostActivityRepository;
+import com.luv2code.jobportal.repository.JobSeekerApplyRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -13,9 +15,11 @@ import java.util.Objects;
 public class JobPostActivityService {
 
     private final JobPostActivityRepository jobPostActivityRepository;
+    private final JobSeekerApplyRepository jobSeekerApplyRepository;
 
-    public JobPostActivityService(JobPostActivityRepository jobPostActivityRepository) {
+    public JobPostActivityService(JobPostActivityRepository jobPostActivityRepository, JobSeekerApplyRepository jobSeekerApplyRepository) {
         this.jobPostActivityRepository = jobPostActivityRepository;
+        this.jobSeekerApplyRepository = jobSeekerApplyRepository;
     }
 
     public JobPostActivity addNew(JobPostActivity jobPostActivity) {
@@ -49,5 +53,12 @@ public class JobPostActivityService {
     public List<JobPostActivity> search(String job, String location, List<String> type, List<String> remote, LocalDate searchDate) {
         return Objects.isNull(searchDate) ? jobPostActivityRepository.searchWithoutDate(job, location, remote,type) :
                 jobPostActivityRepository.search(job, location, remote, type, searchDate);
+    }
+
+
+    @Transactional
+    public void deleteJobById(Integer jobId) {
+        jobSeekerApplyRepository.deleteByJobId(jobId); // Delete child records first
+        jobPostActivityRepository.deleteById(jobId);  // Then delete the job post
     }
 }
